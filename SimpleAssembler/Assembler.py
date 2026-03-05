@@ -21,7 +21,7 @@ def main():
 
     for line in lines:
         line = line.strip()
-        if line == " ":
+        if line == "":
             continue
         if ":" in line:
             label = line.split(":")[0].strip()
@@ -34,17 +34,19 @@ def main():
 
     # rishabh build an error checking function and run the line through them and print response or proceed further.
 
-    output = ""
+    output = []
     pc = 0
     for line in lines:
         line = line.strip()
-        if line == " ":
+        if line == "":
             continue
         if ":" in line:
             labIns = line.split(":", 1)[1].strip()
             if labIns == "":
                 continue
             ins = labIns
+        else:
+            ins = line
         binNum = toBin(ins, pc, labels)
         if binNum:
             output.append(binNum)
@@ -79,7 +81,7 @@ def toBin(instruction, pc, labels):
     # nithilan add b and j type here
     # rishabh add u type here
 
-    
+
 
 
 
