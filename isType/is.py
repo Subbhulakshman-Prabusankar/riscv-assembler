@@ -9,7 +9,7 @@ registers={
     's3':'10011',   's4':'10100', 's5':'10101', 's6':'10110',
     's7':'10111',   's8':'11000', 's9':'11001', 's10':'11010',
     's11':'11011',  't3':'11100', 't4':'11101', 't5':'11110',
-    't6':'11111'
+    't6':'11111',
 
     #register names
     'x0':'00000',  'x1':'00001',  'x2':'00010',  'x3':'00011',
@@ -23,8 +23,104 @@ registers={
     
     }
 
-test="addi s1, s2, 5"
 
 iType={'addi':  ('000', '0010011'), 'lw':    ('010', '0000011'), 'sltiu': ('011', '0010011'), 'jalr':  ('000', '1100111')}
 sType={'sw':    ('010', '0100011')}
 
+def binaryConverter12(n):
+    initial=n
+    fstr=""
+    if(n==0):
+        return "000000000000"
+    elif(n < -2048 or n > 2047):
+        return "Number out of Range"
+    else:
+        while(n not in [0,1,-1]):
+            t=str(n%2)
+            istr=t
+            istr+=fstr
+            n=int(n/2)
+            fstr=istr
+
+    if(str(n)=="-1"):
+        fstr="1"+fstr
+    else:
+        fstr=str(n)+fstr
+
+    if(initial>0):
+        fstr=("0"*(12-len(fstr)))+fstr
+        return fstr
+    else:
+         fstr=("0"*(12-len(fstr)))+fstr
+         for i in range(len(fstr)-1,-1,-1):
+            if(fstr[i]=="1"):
+                convertL=list(fstr[0:i])
+                constL=list(fstr[i:])
+                final=[]
+                for j in convertL:
+                    if(j=="0"):
+                        final.append("1")
+                    else:
+                        final.append("0")
+                break
+    l=final+constL
+    fstr="".join(l)
+    return fstr
+                    
+
+            
+
+f1=open("test.asm", "r")
+instructions=f1.readlines()
+l=[]
+for i in instructions:
+   i=i.replace(",", " ")
+   finalList=i.split()
+   l.append(finalList)
+
+complete=[]
+
+for i in l:
+    incomplete=[]
+    if(i[0] in iType):
+        if(i[0]=="addi" or i[0]=="sltiu" or i[0]=="jalr"):
+            incomplete.append(binaryConverter12(int(i[3])))
+            incomplete.append(registers[i[2]])
+            func3OP=iType[i[0]]
+            incomplete.append(func3OP[0])
+            incomplete.append(registers[i[1]])
+            incomplete.append(func3OP[1])
+            complete.append(incomplete)
+        else:
+            imm = int(i[2].split('(')[0])       
+            h = i[2].split('(')[1].strip(')')
+            incomplete.append(binaryConverter12(imm))
+            incomplete.append(registers[h])
+            func3OP=iType[i[0]]
+            incomplete.append(func3OP[0])
+            incomplete.append(registers[i[1]])
+            incomplete.append(func3OP[1])
+            complete.append(incomplete)
+    elif(i[0] in sType):
+        imm = int(i[2].split('(')[0])
+        h = i[2].split('(')[1].strip(')')
+        imm_bin = binaryConverter12(imm)
+        imm_upper = imm_bin[0:7]   
+        imm_lower = imm_bin[7:12]   
+        func3OP = sType[i[0]]
+        incomplete.append(imm_upper)
+        incomplete.append(registers[i[1]])
+        incomplete.append(registers[h])
+        incomplete.append(func3OP[0])
+        incomplete.append(imm_lower)
+        incomplete.append(func3OP[1])
+        complete.append(incomplete)
+
+    else:
+        print("Unknown instruction")
+
+f2 = open("output.txt", "w")
+for instruction in complete:
+    f2.write(''.join(instruction) + '\n')
+f2.close()
+f1.close()
