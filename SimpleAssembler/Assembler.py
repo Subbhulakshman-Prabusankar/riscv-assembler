@@ -49,10 +49,6 @@ def main():
                 pc += 4
         else:
             pc += 4
-    
-    with open(outputPath, 'w') as f:
-        for line in output:
-            f.write(line + '\n')
 
     # rishabh build an error checking function and run the line through them and print response or proceed further.
 
@@ -171,9 +167,6 @@ def toBin(instruction, pc, labels):
 
 
 
-
-if __name__ == '__main__':
-    main()
 
 
 
