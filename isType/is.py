@@ -119,8 +119,8 @@ for i in l:
     else:
         print("Unknown instruction")
 
-f2 = open("output.txt", "w")
-for instruction in complete:
-    f2.write(''.join(instruction) + '\n')
-f2.close()
-f1.close()
+# f2 = open("output.txt", "w")
+# for instruction in complete:
+#     f2.write(''.join(instruction) + '\n')
+# f2.close()
+# f1.close()
