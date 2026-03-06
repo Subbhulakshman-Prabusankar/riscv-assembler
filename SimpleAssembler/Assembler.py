@@ -115,6 +115,11 @@ def binaryConverter12(n):
     fstr="".join(l)
     return fstr
 
+def intToBin(integer, bits):
+    integer = int(integer)
+    if integer < 0:
+        integer = integer & ((1 << bits) - 1)
+    return format(integer, f'0{bits}b')
 
 def toBin(instruction, pc, labels):
     splitted = instruction.replace(",", " ").split()
@@ -167,7 +172,38 @@ def toBin(instruction, pc, labels):
         rs1     = registers[splitted[2].split('(')[1].strip(')')]
         imm_bin = binaryConverter12(imm)
         return imm_bin[0:7] + rs2 + rs1 + funct3 + imm_bin[7:12] + opcode
-    # nithilan add b and j type here
+
+    bType = {
+        'beq': '000',
+        'bne': '001',
+        'blt': '100',
+        'bge': '101',
+        'bltu': '110',
+        'bgeu': '111',
+    }
+
+    if operation in bType:
+        rs1 = registers[splitted[1]]
+        rs2 = registers[splitted[2]]
+        label2 = splitted[3]
+        if label2 in labels:
+            offset = labels[label2] - pc
+        else:
+            offset = int(label2)
+        num = intToBin(offset, 13)
+        return num[0] + num[2:8] + rs2 + rs1 + bType[operation] + num[8:12] + num[1] + '1100011'
+
+    if operation == "jal":
+        rd = registers[splitted[1]]
+        label3 = splitted[2]
+        if label3 in labels:
+            offset = labels[label3] - pc
+        else:
+            offset = int(label3)
+        num = intToBin(offset, 21)
+        return num[0] + num[10:20] + num[9] + num[1:9] + rd + '1101111'
+
     # rishabh add u type here
 
-
+if __name__ == "__main__":
+    main()
