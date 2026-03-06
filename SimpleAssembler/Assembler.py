@@ -30,8 +30,8 @@ def main():
     else:
         outputReadPath = None
 
-    f = open(inputPath, "r")
-    lines = f.readlines()
+    with open(inputPath, "r") as f:
+        lines = f.readlines()
 
     labels = {}
 
@@ -39,7 +39,7 @@ def main():
 
     for line in lines:
         line = line.strip()
-        if line == " ":
+        if line == "":
             continue
         if ":" in line:
             label = line.split(":")[0].strip()
@@ -49,10 +49,6 @@ def main():
                 pc += 4
         else:
             pc += 4
-    
-    with open(outputPath, 'w') as f:
-        for line in output:
-            f.write(line + '\n')
 
     # rishabh build an error checking function and run the line through them and print response or proceed further.
 
@@ -60,17 +56,24 @@ def main():
     pc = 0
     for line in lines:
         line = line.strip()
-        if line == " ":
+        if line == "":
             continue
         if ":" in line:
             labIns = line.split(":", 1)[1].strip()
             if labIns == "":
                 continue
             ins = labIns
+        else:
+            ins = line
         binNum = toBin(ins, pc, labels)
         if binNum:
             output.append(binNum)
             pc += 4
+
+    with open(outputPath, 'w') as f:
+        for line in output:
+            f.write(line + '\n')
+    # this is temporary code
 
     # rishabh implement the code to write the binary string to the outputPath file.
 
@@ -166,17 +169,5 @@ def toBin(instruction, pc, labels):
         return imm_bin[0:7] + rs2 + rs1 + funct3 + imm_bin[7:12] + opcode
     # nithilan add b and j type here
     # rishabh add u type here
-
-    
-
-
-
-
-if __name__ == '__main__':
-    main()
-
-
-
-
 
 
