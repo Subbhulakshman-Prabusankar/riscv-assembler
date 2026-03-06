@@ -73,7 +73,7 @@ def main():
     with open(outputPath, 'w') as f:
         for line in output:
             f.write(line + '\n')
-    # this is temporary code 
+    # this is temporary code
 
     # rishabh implement the code to write the binary string to the outputPath file.
 
@@ -169,17 +169,6 @@ def toBin(instruction, pc, labels):
         return imm_bin[0:7] + rs2 + rs1 + funct3 + imm_bin[7:12] + opcode
     # nithilan add b and j type here
     # rishabh add u type here
-
-    
-
-
-
-
-if __name__ == '__main__':
-    main()
-
-
-
 
 
 
