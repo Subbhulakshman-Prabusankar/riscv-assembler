@@ -70,6 +70,11 @@ def main():
             output.append(binNum)
             pc += 4
 
+    with open(outputPath, 'w') as f:
+        for line in output:
+            f.write(line + '\n')
+    # this is temporary code 
+
     # rishabh implement the code to write the binary string to the outputPath file.
 
 def binaryConverter12(n):
