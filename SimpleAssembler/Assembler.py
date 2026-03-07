@@ -20,7 +20,96 @@ registers = {
     'x28':'11100', 'x29':'11101', 'x30':'11110', 'x31':'11111'
 }
 
-instructions = {"add", "sub", "slt", "sltu", "xor", "sll", "srl", "or", "and", "addi", "lw", "sltiu", "jalr", "sw","lui","auipc"}# add the instructions you guys work on here
+instructions = {"add", "sub", "slt", "sltu", "xor", "sll", "srl", "or", "and", "addi", "lw", "sltiu", "beq", "bne", "blt", "bge", "bltu", "bgeu", "jal", "sw", "lui", "auipc"}# add the instructions you guys work on here
+
+
+def check_err(instructions, registers, line, lines):
+    tokens = line.replace(",", "").split()
+    operation = tokens[0].lower()
+
+    MIN_12BIT = -2048
+    MAX_12BIT = 2047
+    MIN_20BIT = -1048576
+    MAX_20BIT = 1048575
+
+    def check_reg(reg):
+        if reg in registers:
+            return True
+        else:
+            return False
+
+    def check_imm(val, min_val, max_val):
+        try:
+            num = int(val)
+            return min_val <= num <= max_val
+        except ValueError:
+            return False
+
+    if operation not in instructions:
+        return "Invalid instruction name"
+
+    if operation in {"add", "sub", "sll", "slt", "sltu", "xor", "srl", "or", "and"}:
+        if len(tokens) != 4:
+            return "Invalid syntax"
+        if not check_reg(tokens[1]) or not check_reg(tokens[2]) or not check_reg(tokens[3]):
+            return "Invalid registers name"
+
+    elif operation in {"addi", "sltiu"}:
+        p = int(tokens[3])
+        if len(tokens) != 4:
+            return "Invalid syntax"
+        if not check_reg(tokens[1]) or not check_reg(tokens[2]):
+            return "Invalid register name"
+        if not check_imm(p, MIN_12BIT, MAX_12BIT):
+            return "Invalid value(value out of range)"
+
+    elif operation in {"lw", "sw"}:
+        if len(tokens) != 3:
+            return "Invalid syntax"
+        if not check_reg(tokens[1]):
+            return "Invalid register name"
+
+        part = tokens[2]
+        if "(" not in part or ")" not in part:
+            return "Invalid syntax(load or store instruction)"
+
+        offset, base_reg = part.replace(")", "").split("(")
+        p = int(offset)
+        if not check_reg(base_reg):
+            return "Invalid syntax(load or store instruction)"
+        if not check_imm(p, MIN_12BIT, MAX_12BIT):
+            return "Invalid value(offset)"
+
+    elif operation in {"lui", "auipc"}:
+        p = int(tokens[2])
+        if len(tokens) != 3:
+            return "Invalid syntax"
+        if not check_reg(tokens[1]):
+            return "Invalid register name"
+        if not check_imm(p, MIN_20BIT, MAX_20BIT):
+            return "Invalid value(u-type)"
+
+    elif operation in {"beq", "bne", "blt", "bge", "bltu", "bgeu"}:
+        p = tokens[3]
+        if len(tokens) != 4:
+            return "Invalid syntax"
+        if not check_reg(tokens[1]) or not check_reg(tokens[2]) or not check_imm(p, MIN_12BIT, MAX_12BIT) or p % 2 != 0:
+            return "Invalid syntax(b-type)"
+
+    elif operation == "jal":
+        if len(tokens) != 3:
+            return "Invalid syntax"
+        if not check_reg(tokens[1]):
+            return "Invalid register name"
+        offset, reg = tokens[2].replace(")", "").split("(")
+        p = int(offset)
+        if not check_imm(p, MIN_12BIT, MAX_12BIT):
+            return "Invalid offset(jal)"
+        if not check_reg(reg):
+            return "Invalid register name"
+
+    elif tokens[1] == ":":
+        return "Invalid loop syntax"
 
 def main():
     inputPath = sys.argv[1]
@@ -41,12 +130,6 @@ def main():
         line = line.strip()
         if line == "":
             continue
-
-        error = check_err(instructions,registers,line,lines)
-        if error:
-            print(error)
-            sys.exit(1)
-            
         if ":" in line:    
             label = line.split(":")[0].strip()
             labels[label] = pc
@@ -56,102 +139,13 @@ def main():
         else:    
             pc += 4
 
+    error = check_err(instructions, registers, line, lines)
+    if error:
+        print(error)
+        sys.exit(1)
+
     # rishabh build an error checking function and run the line through them and print response or proceed further.
-    def check_err(instructions, registers, line,lines):
-        tokens =  line.replace(",","").split()
-        operation = tokens[0].lower()
-        
-        MIN_12BIT = -2048
-        MAX_12BIT = 2047
-        MIN_20BIT = -1048576
-        MAX_20BIT = 1048575
-        
-        def check_reg(reg):
-            if reg in registers:
-                return True
-            else:
-                return False
 
-        def check_imm(val, min_val, max_val):
-            try:
-                num = int(val)
-                return min_val <= num <= max_val
-            except ValueError:
-                return False
-
-        if operation not in instructions:
-            return "Invalid instruction name"
-        
-        if operation in { "add","sub","sll","slt","sltu","xor","srl","or","and"}:
-            if len(tokens)!= 4:
-                return "Invalid syntax"
-            if not check_reg(tokens[1]) or not check_reg(tokens[2]) or not check_reg(tokens[3]):
-                return "Invalid registers name"
-
-        elif operation in {"addi", "sltiu"}:
-            p = int(tokens[3])
-            if len(tokens)!= 4:
-                return "Invalid syntax"
-            if not check_reg(tokens[1]) or not check_reg(tokens[2]): 
-                return "Invalid register name"    
-            if not check_imm(p,MIN_12BIT,MAX_12BIT):
-                return "Invalid value(value out of range)"
-
-        elif operation in {"lw","sw"}:
-            if len(tokens)!= 3:
-                return "Invalid syntax"
-            if not check_reg(tokens[1]):
-                return "Invalid register name"
-            
-            part = tokens[2]
-            if "(" not in part or ")" not in part:
-                return "Invalid syntax(load or store instruction)"
-            
-            offset , base_reg = part.replace(")","").split("(")
-            p = int(offset)
-            if not check_reg(base_reg):
-                return "Invalid syntax(load or store instruction)"
-            if not check_imm(p,MIN_12BIT,MAX_12BIT):
-                return "Invalid value(offset)"
-
-        elif operation in {"lui","auipc"}:
-            p = int(tokens[2])
-            if len(tokens)!= 3:
-                return "Invalid syntax"
-            if not check_reg(tokens[1]):
-                return "Invalid register name"
-            if not check_imm(p, MIN_20BIT, MAX_20BIT):
-                return "Invalid value(u-type)"
-
-        elif operation in {"beq","bne","blt","bge","bltu","bgeu"}:
-            p = tokens[3]
-            if len(tokens)!=4:
-                return "Invalid syntax"
-            if not check_reg(tokens[1]) or not check_reg(tokens[2]) or not check_imm(p,MIN_12BIT,MAX_12BIT) or p%2 != 0:
-                return "Invalid syntax(b-type)"
-
-        elif operation == "jalr":
-            if len(tokens)!= 3:
-                return "Invalid syntax"
-            if not check_reg(tokens[1]):
-                return "Invalid register name"
-            offset , reg = token[2].replace(")","").split("(")
-            p = int(offset)
-            if not check_imm(p,MIN_12BIT,MAX_12BIT):
-                return "Invalid offset(jalr)"
-            if not check_reg(reg):
-                return "Invalid register name"
-
-        elif tokens[1] == ":":
-            return "Invalid loop syntax"
-
-        elif operation == "halt":
-            if len(tokens) != 1:
-                return "Invalid syntax(halt)"
-
-            if lines[-1].strip().lower() != "halt":
-                return "Last line must end with halt"
-            
     output = []
     pc = 0
     for line in lines:
@@ -165,7 +159,6 @@ def main():
             ins = labIns
         else:
             ins = line
-        error = check
         binNum = toBin(ins, pc, labels)
         if binNum:
             output.append(binNum)
@@ -217,7 +210,7 @@ def binaryConverter12(n):
     return fstr
 
 def intToBin(integer, bits):
-    integer = int(str(integer), 0) # converted the integer to string then back to integer because base can only be taken when its in string format first.
+    integer = int(str(integer), 0) # guys i converted the integer to string then back to integer because base can only be taken when its in string format first.
     if integer < 0:
         integer = integer & ((1 << bits) - 1)
     return format(integer, f'0{bits}b')
@@ -294,7 +287,7 @@ def toBin(instruction, pc, labels):
         num = intToBin(offset, 13)
         return num[0] + num[2:8] + rs2 + rs1 + bType[operation] + num[8:12] + num[1] + '1100011'
 
-    if operation == "jalr":
+    if operation == "jal":
         rd = registers[splitted[1]]
         label3 = splitted[2]
         if label3 in labels:
@@ -311,12 +304,11 @@ def toBin(instruction, pc, labels):
     
     if operation in uType:
         rd  = registers[splitted[1]]
-        imm = int(splitted[2])
-        imm_bin = intToBin(imm,20)
-        return imm_bin + rd + uType[operation] 
+        imm = intToBin(int(str(splitted[2]), 0), 20)
+        return imm + rd + uType[operation]
+
 
 if __name__ == "__main__":
-
     main()
 
 
