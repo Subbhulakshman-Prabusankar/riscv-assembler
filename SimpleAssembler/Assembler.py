@@ -116,6 +116,16 @@ def main():
                 return "Invalid register name"
             if not check_imm(p, MIN_20BIT, MAX_20BIT):
                 return "Invalid value(u-type)"
+
+        elif operation in bType:
+            p = tokens[3]
+            if len(tokens)!=4:
+                return "Invalid syntax"
+            if not check_reg(tokens[1]) or not check_reg(tokens[2]) or not check_imm(p,MIN_12BIT,MAX_12BIT) or p%2 != 0:
+                return "Invalid syntax(b-type)"
+
+        elif operation == "jalr":
+            
             
     
     output = []
@@ -131,6 +141,7 @@ def main():
             ins = labIns
         else:
             ins = line
+        error = check
         binNum = toBin(ins, pc, labels)
         if binNum:
             output.append(binNum)
@@ -259,7 +270,7 @@ def toBin(instruction, pc, labels):
         num = intToBin(offset, 13)
         return num[0] + num[2:8] + rs2 + rs1 + bType[operation] + num[8:12] + num[1] + '1100011'
 
-    if operation == "jal":
+    if operation == "jalr":
         rd = registers[splitted[1]]
         label3 = splitted[2]
         if label3 in labels:
@@ -283,3 +294,4 @@ def toBin(instruction, pc, labels):
 if __name__ == "__main__":
 
     main()
+
