@@ -41,19 +41,25 @@ def main():
         line = line.strip()
         if line == "":
             continue
-        if ":" in line:
+
+        error = check_err(instructions,registers,line,lines)
+        if error:
+            print(error)
+            sys.exit(1)
+            
+        if ":" in line:    
             label = line.split(":")[0].strip()
             labels[label] = pc
             labIns  = line.split(":", 1)[1].strip()
             if labIns != "":
                 pc += 4
-        else:
+        else:    
             pc += 4
 
     # rishabh build an error checking function and run the line through them and print response or proceed further.
-    def check_err(instructions, registers, line):
-        tokens =  line.replace(",","").split('')
-        operation = tokens[0]
+    def check_err(instructions, registers, line,lines):
+        tokens =  line.replace(",","").split()
+        operation = tokens[0].lower()
         
         MIN_12BIT = -2048
         MAX_12BIT = 2047
@@ -62,9 +68,9 @@ def main():
         
         def check_reg(reg):
             if reg in registers:
-                return true
+                return True
             else:
-                return false
+                return False
 
         def check_imm(val, min_val, max_val):
             try:
@@ -76,13 +82,13 @@ def main():
         if operation not in instructions:
             return "Invalid instruction name"
         
-        if operation in RType:
+        if operation in { "add","sub","sll","slt","sltu","xor","srl","or","and"}:
             if len(tokens)!= 4:
                 return "Invalid syntax"
             if not check_reg(tokens[1]) or not check_reg(tokens[2]) or not check_reg(tokens[3]):
                 return "Invalid registers name"
 
-        elif operation in {"addi", "sltiu","jalr"}:
+        elif operation in {"addi", "sltiu"}:
             p = int(tokens[3])
             if len(tokens)!= 4:
                 return "Invalid syntax"
@@ -117,7 +123,7 @@ def main():
             if not check_imm(p, MIN_20BIT, MAX_20BIT):
                 return "Invalid value(u-type)"
 
-        elif operation in bType:
+        elif operation in {"beq","bne","blt","bge","bltu","bgeu"}:
             p = tokens[3]
             if len(tokens)!=4:
                 return "Invalid syntax"
@@ -125,9 +131,27 @@ def main():
                 return "Invalid syntax(b-type)"
 
         elif operation == "jalr":
+            if len(tokens)!= 3:
+                return "Invalid syntax"
+            if not check_reg(tokens[1]):
+                return "Invalid register name"
+            offset , reg = token[2].replace(")","").split("(")
+            p = int(offset)
+            if not check_imm(p,MIN_12BIT,MAX_12BIT):
+                return "Invalid offset(jalr)"
+            if not check_reg(reg):
+                return "Invalid register name"
+
+        elif tokens[1] == ":":
+            return "Invalid loop syntax"
+
+        elif operation == "halt":
+            if len(tokens) != 1:
+                return "Invalid syntax(halt)"
+
+            if lines[-1].strip().lower() != "halt":
+                return "Last line must end with halt"
             
-            
-    
     output = []
     pc = 0
     for line in lines:
@@ -294,4 +318,5 @@ def toBin(instruction, pc, labels):
 if __name__ == "__main__":
 
     main()
+
 
