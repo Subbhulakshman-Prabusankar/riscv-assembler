@@ -116,7 +116,7 @@ def binaryConverter12(n):
     return fstr
 
 def intToBin(integer, bits):
-    integer = int(integer)
+    integer = int(str(integer), 0) # converted the integer to string then back to integer because base can only be taken when its in string format first.
     if integer < 0:
         integer = integer & ((1 << bits) - 1)
     return format(integer, f'0{bits}b')
@@ -155,20 +155,20 @@ def toBin(instruction, pc, labels):
     if operation in iType:
         funct3, opcode = iType[operation]
         if operation == 'lw':
-            imm = int(splitted[2].split('(')[0])
+            imm = int(splitted[2].split('(')[0], 0)
             rs1 = registers[splitted[2].split('(')[1].strip(')')]
             rd  = registers[splitted[1]]
             return binaryConverter12(imm) + rs1 + funct3 + rd + opcode
         else:
             rd  = registers[splitted[1]]
             rs1 = registers[splitted[2]]
-            imm = int(splitted[3])
+            imm = int(splitted[3], 0)
             return binaryConverter12(imm) + rs1 + funct3 + rd + opcode
 
     if operation in sType:
         funct3, opcode = sType[operation]
         rs2     = registers[splitted[1]]
-        imm     = int(splitted[2].split('(')[0])
+        imm     = int(splitted[2].split('(')[0], 0)
         rs1     = registers[splitted[2].split('(')[1].strip(')')]
         imm_bin = binaryConverter12(imm)
         return imm_bin[0:7] + rs2 + rs1 + funct3 + imm_bin[7:12] + opcode
@@ -189,7 +189,7 @@ def toBin(instruction, pc, labels):
         if label2 in labels:
             offset = labels[label2] - pc
         else:
-            offset = int(label2)
+            offset = int(label2, 0)
         num = intToBin(offset, 13)
         return num[0] + num[2:8] + rs2 + rs1 + bType[operation] + num[8:12] + num[1] + '1100011'
 
@@ -199,7 +199,7 @@ def toBin(instruction, pc, labels):
         if label3 in labels:
             offset = labels[label3] - pc
         else:
-            offset = int(label3)
+            offset = int(label3, 0)
         num = intToBin(offset, 21)
         return num[0] + num[10:20] + num[9] + num[1:9] + rd + '1101111'
 
