@@ -105,17 +105,17 @@ def main():
     def get(i):
         return register[i]
 
-    def add(num, value):
+    def addnew(num, value):
         if num != 0:
             register[num] = value & 0xFFFFFFFF
 
     def memRead(address):
-        if address in memoty:
-            return memoty[address]
+        if address in memory2:
+            return memory2[address]
         return 0
 
     def memWrite(address, value):
-        memoty[address] = value & 0xFFFFFFFF
+        memory2[address] = value & 0xFFFFFFFF
 
     def output():
         x = ["0b" + format(PC, "032b")]
@@ -130,12 +130,13 @@ def main():
         if PC not in memoty:
             break
 
-        opcode = decode(memoty[PC])["opcode"]
-        rd = decode(memoty[PC])["rd"]
-        rs1 = decode(memoty[PC])["rs1"]
-        rs2 = decode(memoty[PC])["rs2"]
-        funct3 = decode(memoty[PC])["funct3"]
-        funct7 = decode(memoty[PC])["funct7"]
+        one = decode(memoty[PC])
+        opcode = one["opcode"]
+        rd = one["rd"]
+        rs1 = one["rs1"]
+        rs2 = one["rs2"]
+        funct3 = one["funct3"]
+        funct7 = one["funct7"]
 
         PCnext = PC + 4
 
@@ -188,7 +189,7 @@ def main():
     num = 0
 
     while num < 32:
-        address = 32 + (num*4)
+        address = stkMemStart + (num*4)
         value = 0
         if address in memory2:
             value = memory2[address]
