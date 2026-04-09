@@ -49,14 +49,21 @@ def decode(ins):
 # ALL THE FUNCTIONS YOU YOURSELF WILL NEED ARE IN HERE SO LIJE MAKE THEM THEN YOU CAN USE IT FOR YOUR code down below at bottom of file
 #nishaanth
 def convSinged32(value):
-    pass
+    value=value & 0xFFFFFFFF
+    if(value & 0x80000000):
+        value-=0x100000000
+    return value
 
 def immI(ins):
-    pass
+    immBits=ins[0:12]
+    imm=int(immBits, 2)
+    return convInt(imm, 12)
 
 def immS(ins):
-    pass
-#------
+    immBits=ins[0:7]+ins[20:25]
+    imm=int(immBits, 2)
+    return convInt(imm, 12)
+
 #nithilan
 def immB(ins):
     pass
@@ -148,13 +155,31 @@ def main():
         #--
         #nishaanth addi, sltiu, lw, sw
         elif opcode == "0010011":
-            pass
+            imm=immI(memoty[PC])
+            if(funct3=="000"):
+                result=convSinged32(get(rs1))+imm #eda missed the singed thing for -ve int here fix
+                addnew(rd, result)
 
-        elif opcode == "0000011":
-            pass
+            elif(funct3=="011"):
+                val1=get(rs1) & 0xFFFFFFFF
+                val2=imm & 0xFFFFFFFF 
+                if(val1 < val2):
+                    addnew(rd, 1)
+                else:
+                    addnew(rd, 0)
+
+        elif opcode =="0000011":
+            if(funct3=="010"):
+                imm=immI(memoty[PC])
+                address=(convSinged32(get(rs1)) + imm) & 0xFFFFFFFF#here asw
+                value=memRead(address)
+                addnew(rd, value)
 
         elif opcode == "0100011":
-            pass
+            if(funct3=="010"):
+                imm=immS(memoty[PC])
+                address = (convSinged32(get(rs1)) +imm) & 0xFFFFFFFF #here asw
+                memWrite(address, get(rs2))
         #--
         #nithilan branch + halt
         elif opcode == "1100011":
