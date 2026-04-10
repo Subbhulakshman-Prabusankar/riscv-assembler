@@ -132,7 +132,7 @@ def main():
 
     def output():
         x = ["0b" + format(PC, "032b")]
-        num = 0;
+        num = 0
         while num < 32:
             x.append("0b" + conv32(register[num]))
             num +=1
@@ -157,7 +157,53 @@ def main():
 
         #me
         if opcode == "0110011":
-            pass
+            val1 = get(rs1)
+            val2 = get(rs2)
+
+            sig1 = convSinged32(val1)
+            sig2 = convSinged32(val2)
+
+            if funct3 == "000" and funct7 == "0000000":
+                result = sig1 + sig2
+                addnew(rd, result)
+
+            elif funct3 == "000" and funct7 == "0100000":
+                result =sig1- sig2
+                addnew(rd, result)
+
+            elif funct3 == "001":
+                shift = val2 & 0x1F
+                result = val1 << shift
+                addnew(rd, result)
+
+            elif funct3 == "010":
+                if sig1< sig2:
+                    addnew(rd, 1)
+                else:
+                    addnew(rd, 0)
+
+            elif funct3 == "011":
+                if val1 < val2:
+                    addnew(rd, 1)
+                else:
+                    addnew(rd, 0)
+
+            elif funct3 == "100":
+                result = val1 ^ val2
+                addnew(rd, result)
+
+            elif funct3 == "101" and funct7 == "0000000":
+                shift = val2 & 0x1F
+                result = val1 >> shift
+                addnew(rd, result)
+
+            elif funct3 == "110":
+                result = val1 | val2
+                addnew(rd, result)
+
+            elif funct3 == "111":
+                result = val1 & val2
+                addnew(rd, result)
         #--
         #nishaanth addi, sltiu, lw, sw
         elif opcode == "0010011":
