@@ -66,7 +66,13 @@ def immS(ins):
 
 #nithilan
 def immB(ins):
-    pass
+    p=""
+    p+=ins[0]
+    p+=ins[24]
+    p+=ins[1:7]
+    p+=ins[20:24]
+    p+="0"
+    return convInt(int(p, 2), 13)
 #------
 #rishabh
 def immU(ins):
@@ -183,7 +189,29 @@ def main():
         #--
         #nithilan branch + halt
         elif opcode == "1100011":
-            pass
+            imm = immB(memoty[PC])
+            if (rs1 == 0 and rs2 == 0 and imm == 0):
+                output()
+                isHalt = True
+            elif (funct3 == "000"):
+                if (get(rs1) == get(rs2)):
+                    PCnext = PC + imm
+            elif (funct3 == "001"):
+                if (get(rs1) != get(rs2)):
+                    PCnext = PC + imm
+            elif (funct3 == "100"):
+                if (convSinged32(get(rs1)) < convSinged32(get(rs2))):
+                    PCnext = PC + imm
+            elif (funct3 == "101"):
+                if (convSinged32(get(rs1)) >= convSinged32(get(rs2))):
+                    PCnext = PC + imm
+            elif (funct3 == "110"):
+                if (get(rs1) < get(rs2)):
+                    PCnext = PC + imm
+            elif (funct3 == "111"):
+                if (get(rs1) >= get(rs2)):
+                    PCnext = PC + imm
+
         #--
         #rishabh jalr, jal, lui, auipc
         elif opcode == "1100111":
