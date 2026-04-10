@@ -31,7 +31,7 @@ def decode(ins):
     result["funct3"] = funct3
 
     rs1 = ""
-    for i in range(12, 17):
+    for i in range(12,17):
         rs1 += ins[i]
     result["rs1"] = int(rs1, 2)
 
@@ -130,6 +130,15 @@ def main():
         if num != 0:
             register[num] = value & 0xFFFFFFFF
 
+    def chkAddress(address):
+        if address % 4 != 0:
+            return False
+        if address >= 0x00010000 and address <= 0x0001007F:
+            return True
+        if address >= 0x00000100 and address <= 0x0000017F:
+            return True
+        return False
+
     def memRead(address):
         if address in memory2:
             return memory2[address]
@@ -146,9 +155,16 @@ def main():
             num +=1
         outputs.append(" ".join(x) + " ")
 
+    allOp = ["0110011", "0010011", "0000011", "0100011", "1100011", "1100111", "1101111", "0110111", "0010111"]
+
     counter = 0
-    while counter < 100000:
+    x = True
+    while counter < 100000 and x == True:
         if PC not in memoty:
+            break
+
+        if PC %4 !=0:
+            x = False
             break
 
         one = decode(memoty[PC])
@@ -159,18 +175,27 @@ def main():
         funct3 = one["funct3"]
         funct7 = one["funct7"]
 
+        if opcode not in allOp:
+            x = False
+            break
+
         PCnext = PC + 4
 
         isHalt = False
 
         #me
+
         if opcode == "0110011":
             val1 = get(rs1)
             val2 = get(rs2)
 
             sig1 = convSinged32(val1)
             sig2 = convSinged32(val2)
+            validRs = [("000", "0000000"), ("000", "0100000"), ("001", "0000000"), ("010", "0000000"), ("011", "0000000"), ("100", "0000000"), ("101", "0000000"), ("110", "0000000"), ("111", "0000000")]
 
+            if (funct3, funct7) not in validRs:
+                x = False
+                break
             if funct3 == "000" and funct7 == "0000000":
                 result = sig1 + sig2
                 addnew(rd, result)
@@ -222,24 +247,38 @@ def main():
 
             elif(funct3=="011"):
                 val1=get(rs1) & 0xFFFFFFFF
-                val2=imm & 0xFFFFFFFF 
+                val2=imm & 0xFFFFFFFF
                 if(val1 < val2):
                     addnew(rd, 1)
                 else:
                     addnew(rd, 0)
 
+            else:
+                x = False
+                break
+
         elif opcode =="0000011":
-            if(funct3=="010"):
-                imm=immI(memoty[PC])
-                address=(convSinged32(get(rs1)) + imm) & 0xFFFFFFFF#here asw
-                value=memRead(address)
-                addnew(rd, value)
+            if(funct3!="010"):
+                x = False
+                break
+            imm=immI(memoty[PC])
+            address=(convSinged32(get(rs1)) + imm) & 0xFFFFFFFF#here asw
+            if not chkAddress(address):
+                x = False
+                break
+            value=memRead(address)
+            addnew(rd, value)
 
         elif opcode == "0100011":
-            if(funct3=="010"):
-                imm=immS(memoty[PC])
-                address = (convSinged32(get(rs1)) +imm) & 0xFFFFFFFF #here asw
-                memWrite(address, get(rs2))
+            if(funct3!="010"):
+                x = False
+                break
+            imm=immS(memoty[PC])
+            address = (convSinged32(get(rs1)) +imm) & 0xFFFFFFFF #here asw
+            if not chkAddress(address):
+                x = False
+                break
+            memWrite(address, get(rs2))
         #--
         #nithilan branch + halt
         elif opcode == "1100011":
@@ -299,13 +338,15 @@ def main():
 
     num = 0
 
-    while num < 32:
-        address = stkMemStart + (num*4)
-        value = 0
-        if address in memory2:
-            value = memory2[address]
-        f.write("0x" + format(address, "08X") + ":0b" + conv32(value) + "\n")
-        num += 1
+    if isHalt == True:
+        num = 0
+        while num < 32:
+            address = stkMemStart + (num*4)
+            value = 0
+            if address in memory2:
+                value = memory2[address]
+            f.write("0x" + format(address, "08X") + ":0b" + conv32(value) + "\n")
+            num += 1
     f.close()
 
 if __name__ == "__main__":
