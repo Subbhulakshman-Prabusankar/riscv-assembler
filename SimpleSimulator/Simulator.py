@@ -76,10 +76,18 @@ def immB(ins):
 #------
 #rishabh
 def immU(ins):
-    pass
+    part = ins[0:20]
+    return int(part, 2) << 12
 
 def immJ(ins):
-    pass
+    part = ""
+    part += ins[0]
+    part += ins[12:20]
+    part += ins[11]
+    part += ins[1:11]
+    part += "0"
+    return convInt(int(part, 2), 21)
+
 #------
 def main():
     inputPath = sys.argv[1]
@@ -261,16 +269,20 @@ def main():
         #--
         #rishabh jalr, jal, lui, auipc
         elif opcode == "1100111":
-            pass
-
+            value = immI(memoty[PC])
+            next = ((convSinged32(get(rs1)) + value) & 0xFFFFFFFE)
+            addnew(rd, PC+4)
+            PCnext = next
         elif opcode == "1101111":
-            pass
-
+            value = immJ(memoty[PC])
+            addnew(rd, PC + 4)
+            next = (PC + value) & 0xFFFFFFFF
+            PCnext = next
         elif opcode == "0110111":
-            pass
-
+            addnew(rd, immU(memoty[PC]))
         elif opcode == "0010111":
-            pass
+            value = (PC + immU(memoty[PC])) & 0xFFFFFFFF
+            addnew(rd, value)
 
         if isHalt == True:
             break
