@@ -1,2 +1,2 @@
-# riscv-assembler
-A RISC-V RV32I assembler built in Python — college project
+# riscv-rv32i-sim
+A RV32I assembler and simulator for the RISC-V base integer instruction set.
